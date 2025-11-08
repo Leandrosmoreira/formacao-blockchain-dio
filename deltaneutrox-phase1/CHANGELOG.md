@@ -8,11 +8,81 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### To Be Added
-- CLI scripts (create-vault, deposit, withdraw, view-vault)
 - Anchor test suite
 - E2E tests
 - CI/CD pipeline
 - Deployment scripts
+
+## [0.3.0] - 2024-11-08
+
+### Added - CLI Scripts Implementation
+
+**Command-Line Tools**
+- Complete CLI suite for vault management
+- Type-safe Anchor integration with full IDL support
+- Interactive command-line interface with colored output
+- Comprehensive error handling and validation
+
+**New CLI Files**
+- `cli/src/create-vault.ts` (160 lines) - Create new vaults
+- `cli/src/deposit.ts` (130 lines) - Deposit tokens, mint shares
+- `cli/src/withdraw.ts` (150 lines) - Burn shares, withdraw tokens
+- `cli/src/view-vault.ts` (170 lines) - View vault state and balances
+- `cli/src/utils.ts` (180 lines) - Shared utilities and helpers
+- `cli/src/idl.ts` (870 lines) - TypeScript IDL definition
+- `cli/package.json` - Dependencies and scripts
+- `cli/tsconfig.json` - TypeScript configuration
+- `cli/.env.example` - Environment configuration template
+
+**CLI Features**
+- create-vault command:
+  * Validates tick range and parameters
+  * Generates vault and shares mint keypairs
+  * Creates associated token accounts
+  * Shows transaction links and next steps
+
+- deposit command:
+  * Deposits tokens into vault
+  * Mints vault shares pro-rata
+  * Auto-creates user shares ATA if needed
+  * Displays updated balances
+
+- withdraw command:
+  * Burns shares and withdraws tokens
+  * Validates shares balance
+  * Shows expected withdrawal amounts
+  * Pro-rata calculation display
+
+- view-vault command:
+  * Complete vault state visualization
+  * Balances, status, configuration
+  * Cooldown status for ExitedToUSDC state
+  * Detailed mode with all addresses
+  * Color-coded status indicators
+
+**Technical Implementation**
+- Commander.js for CLI argument parsing
+- Chalk for colored console output
+- Ora for loading spinners
+- PDA derivation for vault authority
+- Automatic ATA management
+- Transaction confirmation with retries
+- Solana Explorer links in output
+- Input validation and error messages
+
+**Usage**
+```bash
+cd cli && npm install
+npm run create-vault -- -p <POOL> -a <TOKEN_A> -u <USDC> -l -20000 -U 20000
+npm run deposit -- -v <VAULT> -a 1.0 -u 100
+npm run withdraw -- -v <VAULT> -s 1000
+npm run view-vault -- -v <VAULT>
+```
+
+### Changed
+- Updated README.md with CLI usage section and examples
+- Changed Phase 1 completion status to 90%
+- Updated cli/README.md from "planned" to "implemented"
 
 ## [0.2.0] - 2024-11-08
 

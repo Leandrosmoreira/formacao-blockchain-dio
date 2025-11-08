@@ -117,7 +117,7 @@ anchor deploy --provider.cluster devnet
 
 ## Development Status
 
-**Phase 1 - Current** ✅ **80% Complete**
+**Phase 1 - Current** ✅ **90% Complete**
 - [x] Core program structure
 - [x] State accounts (StrategyVault, VaultConfig)
 - [x] All instructions implemented (10 total)
@@ -146,7 +146,11 @@ anchor deploy --provider.cluster devnet
   - [x] Auto-reentry strategy
   - [x] Jupiter API integration
   - [x] Complete documentation
-- [ ] CLI scripts (create-vault, deposit, withdraw, view)
+- [x] CLI scripts (COMPLETE)
+  - [x] create-vault - Create new vaults
+  - [x] deposit - Deposit tokens and receive shares
+  - [x] withdraw - Burn shares and withdraw tokens
+  - [x] view-vault - View vault state and balances
 - [ ] Test suite (Anchor + E2E)
 
 **Phase 2 - Future**
@@ -195,18 +199,42 @@ anchor test -- --test test_name
 RUST_LOG=debug anchor test
 ```
 
-## CLI Usage (Coming Soon)
+## CLI Usage
+
+The CLI tools provide easy command-line interaction with vaults:
 
 ```bash
+cd cli
+npm install
+
+# Configure
+cp .env.example .env
+# Edit .env with your wallet path and RPC URL
+
 # Create vault
-yarn cli:create-vault --pool <POOL_ID> --tick-lower -20000 --tick-upper 20000
+npm run create-vault -- \
+  --pool <WHIRLPOOL_ID> \
+  --token-a <TOKEN_A_MINT> \
+  --usdc <USDC_MINT> \
+  --tick-lower -20000 \
+  --tick-upper 20000
 
-# Deposit
-yarn cli:deposit --amount-sol 1.0 --amount-usdc 100
+# Deposit tokens
+npm run deposit -- \
+  --vault <VAULT_ID> \
+  --amount-a 1.0 \
+  --amount-usdc 100
 
-# View vault
-yarn cli:view-vault
+# Withdraw
+npm run withdraw -- \
+  --vault <VAULT_ID> \
+  --shares 1000
+
+# View vault state
+npm run view-vault -- --vault <VAULT_ID>
 ```
+
+See [cli/README.md](cli/README.md) for complete documentation.
 
 ## Contributing
 
