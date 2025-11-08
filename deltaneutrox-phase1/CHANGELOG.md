@@ -8,10 +8,161 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### To Be Added
-- Anchor test suite
-- E2E tests
 - CI/CD pipeline
-- Deployment scripts
+- Mainnet deployment
+
+## [0.4.0] - 2025-11-08
+
+### Added - Test Suite and Deployment Tools
+
+**Anchor Test Suite**
+- Complete unit test implementation (10 tests)
+- Test utilities and helpers
+- Multi-user test scenarios
+- Comprehensive test coverage
+
+**New Test Files**
+- `tests/utils/setup.ts` (180 lines) - Test utilities and helpers
+  * initTestContext() - Initialize Anchor program for tests
+  * createTestMints() - Create token A and USDC test mints
+  * fundUser() - Fund test users with tokens
+  * deriveVaultAuthority() - PDA derivation helper
+  * getTokenBalance() - Query token account balances
+  * sleep() - Async delay utility
+
+- `tests/deltaneutrox-vault.ts` (380 lines) - Main unit tests
+  * 5 test groups covering all core functionality
+  * 10 comprehensive tests
+
+**Test Coverage (Unit Tests)**
+1. **Vault Creation Tests** (2 tests)
+   - Creates vault with correct parameters
+   - Fails with invalid tick range
+
+2. **Deposit Tests** (2 tests)
+   - Deposits tokens and mints shares (first depositor)
+   - Second deposit mints correct pro-rata shares
+
+3. **Withdraw Tests** (2 tests)
+   - Withdraws tokens by burning shares
+   - Fails when burning more shares than owned
+
+4. **Share Calculation Tests** (2 tests)
+   - First depositor receives 1:1 shares
+   - Pro-rata share distribution for subsequent deposits
+
+5. **State Management Tests** (2 tests)
+   - Tracks total shares correctly
+   - Tracks total deposits and withdrawals
+
+**E2E Test Suite**
+- Complete end-to-end test implementation (9 tests)
+- Full vault lifecycle simulation
+- Multi-user withdrawal scenarios
+
+**New E2E Test File**
+- `tests/e2e/full-cycle.ts` (350 lines) - E2E lifecycle tests
+  * 4 test phases covering complete workflow
+  * 9 comprehensive E2E tests
+  * Multi-user scenarios (3 users)
+
+**E2E Test Coverage**
+1. **Phase 1: Vault Creation and Initial Deposits** (4 tests)
+   - Creates vault successfully
+   - User 1 deposits (first depositor) - 5 tokens, 500 USDC
+   - User 2 deposits (second depositor) - 3 tokens, 300 USDC
+   - User 3 deposits (third depositor) - 2 tokens, 200 USDC
+   - Verifies total vault balances (10 tokens, 1000 USDC)
+
+2. **Phase 2: Position Management (Simulated)** (2 tests)
+   - Shows vault in Idle state (ready for position)
+   - Simulates position lifecycle (requires Whirlpool program)
+     * open_position_once → PositionOpen
+     * Accumulate fees
+     * decrease_liquidity_all → Remove 100% liquidity
+     * collect_fees → Collect trading fees
+     * swap_all_to_usdc → Swap via Jupiter
+     * mark_exited_to_usdc → ExitedToUSDC + timestamp
+     * Wait cooldown period
+     * reenter_with_liquidity → Back to PositionOpen
+
+3. **Phase 3: User Withdrawals** (2 tests)
+   - User 1 withdraws 50% of shares
+   - User 2 withdraws 100% (all shares)
+   - Shows final vault state with remaining balances
+
+4. **Phase 4: Share Distribution Verification** (1 test)
+   - Verifies fair share distribution after withdrawals
+   - User 1: ~50% of original (withdrew half)
+   - User 2: ~0 shares (withdrew all)
+   - User 3: 100% of original (no withdrawal)
+
+**Deployment Tools**
+
+- `scripts/deploy-devnet.sh` (executable bash script)
+  * Automated devnet deployment workflow
+  * Dependency checks (Anchor, Solana CLI)
+  * Automatic SOL airdrop if balance < 2 SOL
+  * Build and deploy with error handling
+  * Program ID extraction and display
+  * Explorer link generation
+
+**Deployment Documentation**
+
+- `DEPLOYMENT.md` (350+ lines) - Comprehensive deployment guide
+  * Prerequisites and environment setup
+  * Step-by-step devnet deployment
+  * Step-by-step mainnet deployment
+  * Security checklist (10 items)
+  * Troubleshooting guide
+  * Cost estimates
+  * Monitoring and maintenance
+
+**Test Utilities Features**
+- Anchor program initialization with env provider
+- Test mint creation (Token A: 9 decimals, USDC: 6 decimals)
+- User funding with configurable token amounts
+- PDA derivation for vault authority
+- Token balance queries
+- Async utilities for test timing
+
+**Test Scenarios**
+- Single user deposits and withdrawals
+- Multi-user pro-rata share calculations
+- Edge cases (invalid tick ranges, insufficient shares)
+- State tracking verification (deposits, withdrawals, shares)
+- Full lifecycle simulation with 3 users
+- Partial and complete withdrawal scenarios
+
+**Technical Implementation**
+- Mocha/Chai testing framework
+- Anchor workspace integration
+- SPL Token program interactions
+- Associated Token Account (ATA) management
+- BN (BigNumber) for precise calculations
+- Before/after hooks for test setup
+- Comprehensive assertions and error checking
+
+**Usage**
+```bash
+# Run all tests
+anchor test
+
+# Run only unit tests
+anchor test tests/deltaneutrox-vault.ts
+
+# Run only E2E tests
+anchor test tests/e2e/full-cycle.ts
+
+# Deploy to devnet
+./scripts/deploy-devnet.sh
+```
+
+### Changed
+- Updated tests/README.md from "Not yet implemented" to "Implemented"
+- Updated README.md to reflect 100% Phase 1 completion
+- Added comprehensive testing section to README.md
+- Changed Phase 1 completion status to 100%
 
 ## [0.3.0] - 2024-11-08
 

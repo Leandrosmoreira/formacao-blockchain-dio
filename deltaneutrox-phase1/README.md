@@ -66,9 +66,14 @@ solana config set --url devnet
 # Airdrop SOL for testing
 solana airdrop 2
 
-# Deploy program
+# Deploy program using script
+./scripts/deploy-devnet.sh
+
+# Or manually
 anchor deploy --provider.cluster devnet
 ```
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for complete deployment guide.
 
 ## Program Instructions
 
@@ -117,7 +122,7 @@ anchor deploy --provider.cluster devnet
 
 ## Development Status
 
-**Phase 1 - Current** ✅ **90% Complete**
+**Phase 1 - Current** ✅ **100% COMPLETE!**
 - [x] Core program structure
 - [x] State accounts (StrategyVault, VaultConfig)
 - [x] All instructions implemented (10 total)
@@ -151,7 +156,11 @@ anchor deploy --provider.cluster devnet
   - [x] deposit - Deposit tokens and receive shares
   - [x] withdraw - Burn shares and withdraw tokens
   - [x] view-vault - View vault state and balances
-- [ ] Test suite (Anchor + E2E)
+- [x] Test suite (COMPLETE)
+  - [x] Anchor unit tests (10 tests)
+  - [x] E2E tests (9 tests)
+  - [x] Test utilities and helpers
+  - [x] Mock data and fixtures
 
 **Phase 2 - Future**
 - Hyperliquid hedge integration
@@ -188,16 +197,32 @@ See [keeper/README.md](keeper/README.md) and [keeper/IDL_INTEGRATION.md](keeper/
 
 ## Testing
 
+The project includes comprehensive test suites:
+
 ```bash
-# Run all tests (coming soon)
+# Run all tests
 anchor test
 
-# Run specific test
-anchor test -- --test test_name
+# Run with logs
+anchor test -- --show-logs
 
-# Test with logs
+# Run specific test file
+anchor test tests/deltaneutrox-vault.ts
+
+# Run E2E tests
+anchor test tests/e2e/full-cycle.ts
+
+# Test with Rust logs
 RUST_LOG=debug anchor test
 ```
+
+**Test Coverage**:
+- ✅ 10 unit tests (vault creation, deposit, withdraw, params)
+- ✅ 9 E2E tests (full lifecycle with multiple users)
+- ✅ Error case testing
+- ✅ Multi-user scenarios
+
+See [tests/README.md](tests/README.md) for test documentation.
 
 ## CLI Usage
 
