@@ -1,0 +1,25 @@
+[package]
+name = "deltaneutrox-vault"
+version = "0.1.0"
+description = "DeltaNeutroX Phase 1 - Automated LP Vault with Auto-Exit Strategy"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "deltaneutrox_vault"
+
+[features]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+cpi = ["no-entrypoint"]
+default = []
+
+[dependencies]
+anchor-lang = "0.30.1"
+anchor-spl = "0.30.1"
+solana-program = "1.18"
+
+[dev-dependencies]
+solana-program-test = "1.18"
+solana-sdk = "1.18"

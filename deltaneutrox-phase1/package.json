@@ -1,0 +1,41 @@
+{
+  "name": "deltaneutrox-phase1",
+  "version": "1.0.0",
+  "description": "DeltaNeutroX Phase 1 - Solana Vault with Auto-Exit and Re-entry Strategy",
+  "main": "index.js",
+  "scripts": {
+    "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
+    "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check",
+    "test": "anchor test",
+    "build": "anchor build",
+    "deploy:devnet": "anchor deploy --provider.cluster devnet",
+    "deploy:mainnet": "anchor deploy --provider.cluster mainnet-beta"
+  },
+  "keywords": [
+    "solana",
+    "anchor",
+    "defi",
+    "vault",
+    "orca",
+    "whirlpool",
+    "delta-neutral"
+  ],
+  "author": "DeltaNeutroX Team",
+  "license": "MIT",
+  "dependencies": {
+    "@coral-xyz/anchor": "^0.30.1",
+    "@solana/web3.js": "^1.95.0",
+    "@solana/spl-token": "^0.4.8"
+  },
+  "devDependencies": {
+    "@types/bn.js": "^5.1.5",
+    "@types/chai": "^4.3.0",
+    "@types/mocha": "^10.0.6",
+    "chai": "^4.3.4",
+    "mocha": "^10.3.0",
+    "prettier": "^3.2.5",
+    "ts-mocha": "^10.0.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5"
+  }
+}

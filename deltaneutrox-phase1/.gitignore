@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
+# Build outputs
+target/
+dist/
+.anchor/
+test-ledger/
+
+# IDL
+**/*.so
+**/*.json.d.ts
+
+# Environment
+.env
+.env.local
+
+# Keypairs (NEVER commit!)
+keypairs/*.json
+!keypairs/.gitkeep
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Rust
+Cargo.lock

@@ -1,0 +1,2 @@
+# This file ensures the keypairs directory is tracked by git
+# But actual .json keypair files are ignored by .gitignore
