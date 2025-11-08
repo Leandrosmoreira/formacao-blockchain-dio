@@ -4,9 +4,9 @@ Command-line interface scripts for interacting with DeltaNeutroX vaults.
 
 ## Status
 
-⚠️ **Not yet implemented** - Coming soon
+✅ **Implemented** - Ready to use
 
-## Planned Scripts
+## Available Scripts
 
 ### Core Operations
 
@@ -79,16 +79,18 @@ yarn cli:set-params \
   --cooldown 300000
 ```
 
-## Implementation Plan
+## Installation
 
-1. Create `package.json` with dependencies
-2. Implement core scripts (create, deposit, withdraw, view)
-3. Add keeper operation scripts
-4. Add utility functions (PDA derivation, account fetching)
-5. Add interactive prompts (inquirer.js)
-6. Add validation and error handling
+```bash
+cd cli
+npm install
 
-## Dependencies (Planned)
+# Configure environment
+cp .env.example .env
+# Edit .env with your settings
+```
+
+## Dependencies
 
 ```json
 {
@@ -102,7 +104,7 @@ yarn cli:set-params \
 }
 ```
 
-## Usage Example (Future)
+## Usage Examples
 
 ```bash
 # Install
@@ -129,14 +131,37 @@ npm run deposit -- \
 npm run view-vault -- --vault <VAULT_ID>
 ```
 
-## Contributing
+## Environment Configuration
 
-To implement these scripts:
+Create a `.env` file:
 
-1. Use the keeper's IDL integration as reference
-2. Reuse PDA derivation from `keeper/src/pda.ts`
-3. Follow Anchor best practices
-4. Add comprehensive error handling
-5. Include help messages and examples
+```bash
+SOLANA_RPC_URL=https://api.devnet.solana.com
+WALLET_PATH=~/.config/solana/id.json
+PROGRAM_ID=Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS
+```
 
-See [keeper/src/](../keeper/src/) for implementation patterns.
+## Troubleshooting
+
+**"Wallet file not found"**
+- Check WALLET_PATH in .env
+- Generate wallet: `solana-keygen new`
+
+**"Insufficient balance"**
+- Airdrop SOL: `solana airdrop 2`
+
+**"Account does not exist"**
+- Wrong vault address
+- Vault not created yet
+
+## Implementation Details
+
+All scripts use:
+- Anchor IDL integration for type-safe transactions
+- PDA derivation for vault authority
+- Token account management (ATA)
+- Comprehensive error handling
+- Colored console output (chalk)
+- Loading spinners (ora)
+
+See [src/utils.ts](src/utils.ts) for shared utilities.
