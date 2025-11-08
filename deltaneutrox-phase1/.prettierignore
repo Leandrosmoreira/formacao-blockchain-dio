@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build outputs
+target/
+**/target/
+dist/
+**/dist/
+build/
+**/build/
+
+# Anchor
+.anchor/
+test-ledger/
+
+# IDL
+*.json
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Temporary
+*.tmp
+*.temp
+
+# Lock files
+package-lock.json
+yarn.lock
+Cargo.lock

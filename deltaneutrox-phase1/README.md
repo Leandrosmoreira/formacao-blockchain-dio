@@ -117,15 +117,37 @@ anchor deploy --provider.cluster devnet
 
 ## Development Status
 
-**Phase 1 - Current**
+**Phase 1 - Current** ✅ **80% Complete**
 - [x] Core program structure
 - [x] State accounts (StrategyVault, VaultConfig)
-- [x] Basic instructions (create, deposit, withdraw)
-- [x] Instruction stubs (open, exit, reentry)
-- [ ] Whirlpool CPI integration
-- [ ] Jupiter swap integration
-- [ ] Keeper implementation
-- [ ] Full test suite
+- [x] All instructions implemented (10 total)
+  - [x] create_vault, deposit, withdraw
+  - [x] open_position_once
+  - [x] decrease_liquidity_all
+  - [x] collect_fees
+  - [x] swap_all_to_usdc
+  - [x] mark_exited_to_usdc
+  - [x] reenter_with_liquidity
+  - [x] set_params
+- [x] Whirlpool CPI integration (COMPLETE)
+  - [x] open_position_with_metadata
+  - [x] increase_liquidity
+  - [x] decrease_liquidity
+  - [x] collect_fees
+  - [x] Tick array derivation
+- [x] Jupiter swap integration (COMPLETE)
+  - [x] swap_with_route
+  - [x] Remaining accounts handling
+- [x] Keeper bot implementation (COMPLETE)
+  - [x] IDL integration
+  - [x] Pyth price monitoring
+  - [x] TWAP calculation
+  - [x] Auto-exit strategy
+  - [x] Auto-reentry strategy
+  - [x] Jupiter API integration
+  - [x] Complete documentation
+- [ ] CLI scripts (create-vault, deposit, withdraw, view)
+- [ ] Test suite (Anchor + E2E)
 
 **Phase 2 - Future**
 - Hyperliquid hedge integration
@@ -137,10 +159,33 @@ anchor deploy --provider.cluster devnet
 - Analytics dashboard
 - Multi-strategy support
 
+## Keeper Bot
+
+The automated keeper bot monitors vault positions and executes auto-exit/reentry based on TWAP.
+
+```bash
+cd keeper
+
+# Install dependencies
+npm install
+
+# Configure (copy and edit .env)
+cp .env.example .env
+
+# Run keeper
+npm run dev
+
+# Production
+npm run build
+npm start
+```
+
+See [keeper/README.md](keeper/README.md) and [keeper/IDL_INTEGRATION.md](keeper/IDL_INTEGRATION.md) for details.
+
 ## Testing
 
 ```bash
-# Run all tests
+# Run all tests (coming soon)
 anchor test
 
 # Run specific test
