@@ -20,8 +20,8 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
 
-# Instalar Rust (versão 1.75.0 compatível com Anchor 0.30.1)
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.75.0
+# Instalar Rust (versão 1.78.0 para suportar dependências modernas)
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.78.0
 ENV PATH="/root/.cargo/bin:$PATH"
 
 # Instalar Solana CLI 1.18.22
