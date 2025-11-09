@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  deltaneutrox:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: deltaneutrox-builder
+    volumes:
+      - .:/workspace
+      - solana-data:/root/.config/solana
+      - cargo-cache:/root/.cargo/registry
+      - cargo-git:/root/.cargo/git
+    environment:
+      - RUST_LOG=info
+      - ANCHOR_WALLET=/root/.config/solana/id.json
+    working_dir: /workspace
+    stdin_open: true
+    tty: true
+    command: /bin/bash
+
+volumes:
+  solana-data:
+  cargo-cache:
+  cargo-git:
