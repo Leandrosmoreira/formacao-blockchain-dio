@@ -34,7 +34,7 @@ RUN sh -c "$(curl -sSfL https://release.solana.com/v1.18.22/install)" || \
 ENV PATH="/root/.local/share/solana/install/active_release/bin:$PATH"
 
 # Instalar Anchor CLI 0.30.1 via cargo (nightly suporta edition2024)
-RUN cargo install --git https://github.com/coral-xyz/anchor --tag v0.30.1 anchor-cli --locked
+RUN cargo install --git https://github.com/coral-xyz/anchor --tag v0.30.1 anchor-cli
 
 # Criar diretório de trabalho
 WORKDIR /workspace
