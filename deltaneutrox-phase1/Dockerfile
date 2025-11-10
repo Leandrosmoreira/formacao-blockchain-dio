@@ -36,7 +36,7 @@ ENV PATH="/root/.local/share/solana/install/active_release/bin:$PATH"
 # Instalar Anchor via AVM (Anchor Version Manager)
 RUN cargo install --git https://github.com/coral-xyz/anchor avm --locked --force && \
     rm -f /root/.cargo/bin/anchor* && \
-    avm install 0.30.1 && \
+    avm install --force 0.30.1 && \
     avm use 0.30.1
 ENV PATH="/root/.avm/bin:$PATH"
 
