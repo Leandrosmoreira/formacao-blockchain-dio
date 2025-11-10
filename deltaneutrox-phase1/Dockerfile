@@ -20,8 +20,8 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
 
-# Instalar Rust
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+# Instalar Rust com nightly (suporta edition2024)
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain nightly
 ENV PATH="/root/.cargo/bin:$PATH"
 
 # Instalar Solana CLI 1.18.22
@@ -33,13 +33,8 @@ RUN sh -c "$(curl -sSfL https://release.solana.com/v1.18.22/install)" || \
 
 ENV PATH="/root/.local/share/solana/install/active_release/bin:$PATH"
 
-# Instalar Anchor CLI 0.30.1 (download direto do binário pré-compilado)
-RUN wget https://github.com/coral-xyz/anchor/releases/download/v0.30.1/anchor-v0.30.1-x86_64-unknown-linux-gnu.tar.gz && \
-    tar -xzf anchor-v0.30.1-x86_64-unknown-linux-gnu.tar.gz && \
-    mv anchor /root/.cargo/bin/ && \
-    chmod +x /root/.cargo/bin/anchor && \
-    rm anchor-v0.30.1-x86_64-unknown-linux-gnu.tar.gz && \
-    anchor --version
+# Instalar Anchor CLI 0.30.1 via cargo (nightly suporta edition2024)
+RUN cargo install --git https://github.com/coral-xyz/anchor --tag v0.30.1 anchor-cli --locked
 
 # Criar diretório de trabalho
 WORKDIR /workspace
