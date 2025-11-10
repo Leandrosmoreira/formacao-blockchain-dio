@@ -34,9 +34,10 @@ RUN sh -c "$(curl -sSfL https://release.solana.com/v1.18.22/install)" || \
 ENV PATH="/root/.local/share/solana/install/active_release/bin:$PATH"
 
 # Instalar Anchor via AVM (Anchor Version Manager)
-RUN cargo install --git https://github.com/coral-xyz/anchor avm --locked --force
-RUN rm -f /root/.cargo/bin/anchor /root/.cargo/bin/anchor-cli
-RUN avm install 0.30.1 && avm use 0.30.1
+RUN cargo install --git https://github.com/coral-xyz/anchor avm --locked --force && \
+    rm -f /root/.cargo/bin/anchor* && \
+    avm install 0.30.1 && \
+    avm use 0.30.1
 ENV PATH="/root/.avm/bin:$PATH"
 
 # Criar diretório de trabalho
