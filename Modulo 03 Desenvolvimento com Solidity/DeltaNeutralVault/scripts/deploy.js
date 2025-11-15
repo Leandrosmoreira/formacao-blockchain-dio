@@ -13,6 +13,10 @@ async function main() {
   const USDC_ADDRESS = "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238"; // Sepolia USDC
   const CHAINLINK_FEED = "0x1b44F3514812d835EB1BDB0acB33d3fA3351Ee43"; // BTC/USD Sepolia
 
+  // ⚠️ ATENÇÃO: Endereços do Uniswap v3 (ajuste conforme a rede)
+  const POSITION_MANAGER = "0x1238536071E1c677A632429e3655c799b22cDA52"; // Sepolia
+  const SWAP_ROUTER = "0xE592427A0AEce92De3Edee1F18E0157C05861564"; // Sepolia (universal)
+
   // ⚠️ ALTERE PARA SEU ENDEREÇO
   const [deployer] = await hre.ethers.getSigners();
   const TREASURY_ADDRESS = deployer.address; // Por padrão, usa o deployer
@@ -25,6 +29,8 @@ async function main() {
   console.log("- Network:", hre.network.name);
   console.log("- USDC:", USDC_ADDRESS);
   console.log("- Chainlink Feed:", CHAINLINK_FEED);
+  console.log("- Position Manager:", POSITION_MANAGER);
+  console.log("- Swap Router:", SWAP_ROUTER);
   console.log("- Treasury:", TREASURY_ADDRESS);
   console.log("");
 
@@ -52,7 +58,9 @@ async function main() {
     VAULT_NAME,
     VAULT_SYMBOL,
     CHAINLINK_FEED,
-    TREASURY_ADDRESS
+    TREASURY_ADDRESS,
+    POSITION_MANAGER,
+    SWAP_ROUTER
   );
 
   await vault.waitForDeployment();
@@ -104,30 +112,31 @@ async function main() {
   console.log("=".repeat(60));
   console.log("\n📝 Endereço do Contrato:");
   console.log("   " + vaultAddress);
-  console.log("\n⚠️ IMPORTANTE - ETAPA 1:");
-  console.log("   Este contrato está na Etapa 1 (base/estrutura)");
-  console.log("   As funções de Uniswap v3 são STUBS (não funcionam ainda)");
-  console.log("\n✅ O que funciona:");
+  console.log("\n✅ IMPORTANTE - ETAPA 2 (COMPLETA):");
+  console.log("   Este contrato possui integração REAL com Uniswap v3!");
+  console.log("\n✅ Funcionalidades Completas:");
   console.log("   ├─ Deposit/Withdraw de USDC");
-  console.log("   ├─ Cobrança de entry/exit fees");
+  console.log("   ├─ Cobrança de todas as fees (6 tipos)");
   console.log("   ├─ Validação de oracles Chainlink");
-  console.log("   └─ Sistema de permissões");
-  console.log("\n❌ O que NÃO funciona ainda:");
-  console.log("   ├─ Abrir posições LP no Uniswap v3");
-  console.log("   ├─ Fechar posições LP");
-  console.log("   ├─ Swaps automáticos");
-  console.log("   └─ autoExit/autoReenter completos");
+  console.log("   ├─ Sistema de permissões");
+  console.log("   ├─ Abrir posições LP no Uniswap v3 (mint)");
+  console.log("   ├─ Fechar posições LP (decrease + collect + burn)");
+  console.log("   ├─ Swaps via Uniswap v3 SwapRouter");
+  console.log("   ├─ autoExit/autoReenter FUNCIONAIS");
+  console.log("   ├─ collectFees() da posição LP");
+  console.log("   └─ Delta-neutral completo");
 
   console.log("\n📋 Próximos passos:");
   console.log("   1. Criar ou encontrar pool WBTC/USDC no Uniswap v3");
-  console.log("   2. Chamar setUniswapPool(poolAddress)");
+  console.log("   2. Chamar setUniswapConfig(pool, positionManager, swapRouter)");
   console.log("   3. Chamar setRange(tickLower, tickUpper)");
-  console.log("   4. Implementar Etapa 2 para funcionalidade completa");
+  console.log("   4. Testar com depósitos reais!");
+  console.log("   5. Configurar keeper off-chain para automação");
 
   console.log("\n💡 Para configurar o pool:");
   console.log("   const vault = await ethers.getContractAt('DeltaNeutralVaultV1', '" + vaultAddress + "');");
-  console.log("   await vault.setUniswapPool('0xPoolAddress');");
-  console.log("   await vault.setRange(-887220, 887220); // Full range");
+  console.log("   await vault.setUniswapConfig('0xPoolAddress', '" + POSITION_MANAGER + "', '" + SWAP_ROUTER + "');");
+  console.log("   await vault.setRange(-887220, 887220); // Full range example");
 
   console.log("\n🔗 Links úteis:");
   console.log("   - Uniswap v3: https://app.uniswap.org/pools");
