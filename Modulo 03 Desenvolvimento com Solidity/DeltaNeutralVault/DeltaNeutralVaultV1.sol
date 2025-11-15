@@ -340,12 +340,12 @@ contract DeltaNeutralVaultV1 is ERC20, ERC4626, Ownable, Pausable, ReentrancyGua
         uint16 _swapFeeBps,
         uint16 _keeperFeeBps
     ) external onlyOwner {
-        require(_performanceFeeBps <= 5000, "DeltaNeutralVault: performance fee too high"); // max 50%
+        require(_performanceFeeBps <= 1500, "DeltaNeutralVault: performance fee too high"); // max 15%
         require(_managementFeeBps <= 1000, "DeltaNeutralVault: management fee too high"); // max 10%
-        require(_entryFeeBps <= 1000, "DeltaNeutralVault: entry fee too high"); // max 10%
-        require(_exitFeeBps <= 1000, "DeltaNeutralVault: exit fee too high"); // max 10%
+        require(_entryFeeBps == 0, "DeltaNeutralVault: entry fee must be 0%"); // fixed 0%
+        require(_exitFeeBps == 0, "DeltaNeutralVault: exit fee must be 0%"); // fixed 0%
         require(_swapFeeBps <= 1000, "DeltaNeutralVault: swap fee too high"); // max 10%
-        require(_keeperFeeBps <= 1000, "DeltaNeutralVault: keeper fee too high"); // max 10%
+        require(_keeperFeeBps <= 500, "DeltaNeutralVault: keeper fee too high"); // max 5%
 
         performanceFeeBps = _performanceFeeBps;
         managementFeeBps = _managementFeeBps;
