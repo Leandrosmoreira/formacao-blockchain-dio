@@ -203,3 +203,40 @@ contract MockSwapRouter {
         amountOut = params.amountIn;
     }
 }
+
+/**
+ * @title Mock1inchRouter
+ * @notice Mock 1inch Aggregation Router v5 para testes
+ */
+contract Mock1inchRouter {
+    struct SwapDescription {
+        address srcToken;
+        address dstToken;
+        address payable srcReceiver;
+        address payable dstReceiver;
+        uint256 amount;
+        uint256 minReturnAmount;
+        uint256 flags;
+    }
+
+    function swap(
+        address executor,
+        SwapDescription calldata desc,
+        bytes calldata permit,
+        bytes calldata data
+    ) external payable returns (uint256 returnAmount, uint256 spentAmount) {
+        // Mock: retorna 1:1 ratio com slippage mínimo
+        returnAmount = desc.amount;
+        spentAmount = desc.amount;
+    }
+
+    function unoswap(
+        address caller,
+        SwapDescription calldata desc,
+        bytes calldata data
+    ) external payable returns (uint256 returnAmount, uint256 spentAmount) {
+        // Mock: retorna 1:1 ratio
+        returnAmount = desc.amount;
+        spentAmount = desc.amount;
+    }
+}

@@ -18,6 +18,7 @@ contract DeltaNeutralVaultTest is Test {
     MockChainlinkFeed public chainlinkFeed;
     MockPositionManager public positionManager;
     MockSwapRouter public swapRouter;
+    Mock1inchRouter public oneInchRouter;
 
     address public owner;
     address public keeper;
@@ -50,6 +51,7 @@ contract DeltaNeutralVaultTest is Test {
         chainlinkFeed = new MockChainlinkFeed(8, INITIAL_BTC_PRICE);
         positionManager = new MockPositionManager();
         swapRouter = new MockSwapRouter();
+        oneInchRouter = new Mock1inchRouter();
 
         // Deploy vault
         vault = new DeltaNeutralVaultV1(
@@ -59,7 +61,8 @@ contract DeltaNeutralVaultTest is Test {
             address(chainlinkFeed),
             treasury,
             address(positionManager),
-            address(swapRouter)
+            address(swapRouter),
+            address(oneInchRouter)
         );
 
         // Mint USDC to users

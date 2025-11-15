@@ -17,6 +17,7 @@ contract DeployScript is Script {
         address CHAINLINK_FEED = 0x1b44F3514812d835EB1BDB0acB33d3fA3351Ee43; // BTC/USD Sepolia
         address POSITION_MANAGER = 0x1238536071E1c677A632429e3655c799b22cDA52; // Sepolia
         address SWAP_ROUTER = 0xE592427A0AEce92De3Edee1F18E0157C05861564; // Sepolia
+        address ONEINCH_ROUTER = 0x1111111254EEB25477B68fb85Ed929f73A960582; // 1inch v5 Router (Mainnet/Sepolia)
 
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         address deployer = vm.addr(deployerPrivateKey);
@@ -34,7 +35,8 @@ contract DeployScript is Script {
             CHAINLINK_FEED,
             deployer, // treasury = deployer inicialmente
             POSITION_MANAGER,
-            SWAP_ROUTER
+            SWAP_ROUTER,
+            ONEINCH_ROUTER
         );
 
         console.log("Vault deployed at:", address(vault));

@@ -16,6 +16,7 @@ async function main() {
   // ⚠️ ATENÇÃO: Endereços do Uniswap v3 (ajuste conforme a rede)
   const POSITION_MANAGER = "0x1238536071E1c677A632429e3655c799b22cDA52"; // Sepolia
   const SWAP_ROUTER = "0xE592427A0AEce92De3Edee1F18E0157C05861564"; // Sepolia (universal)
+  const ONEINCH_ROUTER = "0x1111111254EEB25477B68fb85Ed929f73A960582"; // 1inch v5 Router (Mainnet/Sepolia)
 
   // ⚠️ ALTERE PARA SEU ENDEREÇO
   const [deployer] = await hre.ethers.getSigners();
@@ -31,6 +32,7 @@ async function main() {
   console.log("- Chainlink Feed:", CHAINLINK_FEED);
   console.log("- Position Manager:", POSITION_MANAGER);
   console.log("- Swap Router:", SWAP_ROUTER);
+  console.log("- 1inch Router:", ONEINCH_ROUTER);
   console.log("- Treasury:", TREASURY_ADDRESS);
   console.log("");
 
@@ -60,7 +62,8 @@ async function main() {
     CHAINLINK_FEED,
     TREASURY_ADDRESS,
     POSITION_MANAGER,
-    SWAP_ROUTER
+    SWAP_ROUTER,
+    ONEINCH_ROUTER
   );
 
   await vault.waitForDeployment();
@@ -112,8 +115,8 @@ async function main() {
   console.log("=".repeat(60));
   console.log("\n📝 Endereço do Contrato:");
   console.log("   " + vaultAddress);
-  console.log("\n✅ IMPORTANTE - ETAPA 2 (COMPLETA):");
-  console.log("   Este contrato possui integração REAL com Uniswap v3!");
+  console.log("\n✅ IMPORTANTE - ETAPA 3 (PRODUCTION-READY):");
+  console.log("   Este contrato possui TODAS as otimizações de produção!");
   console.log("\n✅ Funcionalidades Completas:");
   console.log("   ├─ Deposit/Withdraw de USDC");
   console.log("   ├─ Cobrança de todas as fees (6 tipos)");
@@ -121,7 +124,10 @@ async function main() {
   console.log("   ├─ Sistema de permissões");
   console.log("   ├─ Abrir posições LP no Uniswap v3 (mint)");
   console.log("   ├─ Fechar posições LP (decrease + collect + burn)");
-  console.log("   ├─ Swaps via Uniswap v3 SwapRouter");
+  console.log("   ├─ Swaps via 1inch Aggregator v5 (melhor preço!)");
+  console.log("   ├─ Swaps via Uniswap v3 (fallback)");
+  console.log("   ├─ Cálculo otimizado de liquidez (LiquidityMath)");
+  console.log("   ├─ Proteção de slippage via oracle");
   console.log("   ├─ autoExit/autoReenter FUNCIONAIS");
   console.log("   ├─ collectFees() da posição LP");
   console.log("   └─ Delta-neutral completo");

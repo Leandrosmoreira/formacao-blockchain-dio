@@ -13,11 +13,13 @@ import "@uniswap/v3-periphery/contracts/interfaces/INonfungiblePositionManager.s
 import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 import "@uniswap/v3-core/contracts/libraries/TickMath.sol";
+import "./libraries/LiquidityMath.sol";
+import "./interfaces/I1inchAggregator.sol";
 
 /**
  * @title DeltaNeutralVaultV1
  * @notice Vault ERC-4626 para estratégia delta-neutral com Uniswap v3
- * @dev Etapa 2: Implementação COMPLETA com integração Uniswap v3 FUNCIONAL
+ * @dev Etapa 3: PRODUCTION-READY com 1inch, LiquidityMath otimizada e proteção de slippage
  */
 contract DeltaNeutralVaultV1 is ERC20, ERC4626, Ownable, Pausable, ReentrancyGuard {
     using SafeERC20 for IERC20;
@@ -66,6 +68,7 @@ contract DeltaNeutralVaultV1 is ERC20, ERC4626, Ownable, Pausable, ReentrancyGua
     IUniswapV3Pool public uniswapPool;
     INonfungiblePositionManager public positionManager;
     ISwapRouter public swapRouter;
+    I1inchAggregator public oneInchRouter;
 
     int24 public tickLower;
     int24 public tickUpper;
@@ -176,6 +179,7 @@ contract DeltaNeutralVaultV1 is ERC20, ERC4626, Ownable, Pausable, ReentrancyGua
      * @param _treasury Endereço da treasury para receber fees
      * @param _positionManager Endereço do NonfungiblePositionManager do Uniswap v3
      * @param _swapRouter Endereço do SwapRouter do Uniswap v3
+     * @param _oneInchRouter Endereço do 1inch Aggregation Router v5
      */
     constructor(
         IERC20 _asset,
@@ -184,7 +188,8 @@ contract DeltaNeutralVaultV1 is ERC20, ERC4626, Ownable, Pausable, ReentrancyGua
         address _chainlinkFeed,
         address _treasury,
         address _positionManager,
-        address _swapRouter
+        address _swapRouter,
+        address _oneInchRouter
     )
         ERC20(_name, _symbol)
         ERC4626(_asset)
@@ -193,11 +198,13 @@ contract DeltaNeutralVaultV1 is ERC20, ERC4626, Ownable, Pausable, ReentrancyGua
         require(_chainlinkFeed != address(0), "DeltaNeutralVault: chainlink feed cannot be zero");
         require(_positionManager != address(0), "DeltaNeutralVault: position manager cannot be zero");
         require(_swapRouter != address(0), "DeltaNeutralVault: swap router cannot be zero");
+        require(_oneInchRouter != address(0), "DeltaNeutralVault: 1inch router cannot be zero");
 
         treasury = _treasury;
         chainlinkPriceFeed = AggregatorV3Interface(_chainlinkFeed);
         positionManager = INonfungiblePositionManager(_positionManager);
         swapRouter = ISwapRouter(_swapRouter);
+        oneInchRouter = I1inchAggregator(_oneInchRouter);
         lastManagementFeeTimestamp = block.timestamp;
 
         // Defaults
@@ -234,6 +241,15 @@ contract DeltaNeutralVaultV1 is ERC20, ERC4626, Ownable, Pausable, ReentrancyGua
         token1 = uniswapPool.token1();
 
         emit UniswapConfigUpdated(_pool, _positionManager, _swapRouter);
+    }
+
+    /**
+     * @notice Define o 1inch router
+     * @param _oneInchRouter Endereço do 1inch Aggregation Router v5
+     */
+    function setOneInchRouter(address _oneInchRouter) external onlyOwner {
+        require(_oneInchRouter != address(0), "DeltaNeutralVault: 1inch router cannot be zero");
+        oneInchRouter = I1inchAggregator(_oneInchRouter);
     }
 
     /**
@@ -792,7 +808,60 @@ contract DeltaNeutralVaultV1 is ERC20, ERC4626, Ownable, Pausable, ReentrancyGua
     }
 
     /**
-     * @notice Executa swap via Uniswap v3 (IMPLEMENTAÇÃO REAL)
+     * @notice Executa swap via 1inch Aggregator v5 (PRODUÇÃO)
+     * @dev Keeper deve chamar API 1inch off-chain para obter executor e data
+     * @param tokenIn Token de entrada
+     * @param tokenOut Token de saída
+     * @param amountIn Quantidade a ser swapada
+     * @param executor Executor address (from 1inch API)
+     * @param data Calldata do swap (from 1inch API)
+     * @return amountOut Quantidade recebida
+     */
+    function executeSwapVia1inch(
+        address tokenIn,
+        address tokenOut,
+        uint256 amountIn,
+        address executor,
+        bytes calldata data
+    ) external onlyKeeper nonReentrant returns (uint256 amountOut) {
+        if (amountIn == 0) {
+            return 0;
+        }
+
+        // Aplica swap fee
+        uint256 netAmountIn = _applySwapFee(amountIn);
+
+        // Calcular amount mínimo usando oracle (PROTEÇÃO DE SLIPPAGE)
+        (uint256 oraclePrice,) = _getOraclePrice();
+        uint256 expectedOut = (netAmountIn * oraclePrice) / 1e18;
+        uint256 amountOutMinimum = (expectedOut * (10000 - maxSlippageBps)) / 10000;
+
+        // Aprovar tokens para 1inch
+        IERC20(tokenIn).safeApprove(address(oneInchRouter), netAmountIn);
+
+        // Preparar descrição do swap
+        I1inchAggregator.SwapDescription memory desc = I1inchAggregator.SwapDescription({
+            srcToken: tokenIn,
+            dstToken: tokenOut,
+            srcReceiver: payable(address(this)),
+            dstReceiver: payable(address(this)),
+            amount: netAmountIn,
+            minReturnAmount: amountOutMinimum,
+            flags: 0
+        });
+
+        // Executar swap via 1inch
+        (amountOut,) = oneInchRouter.swap(executor, desc, "", data);
+
+        // Reset approval
+        IERC20(tokenIn).safeApprove(address(oneInchRouter), 0);
+
+        emit SwapExecuted(tokenIn, tokenOut, amountIn, amountOut);
+    }
+
+    /**
+     * @notice Executa swap via Uniswap v3 (FALLBACK)
+     * @dev Usado internamente quando 1inch não está disponível
      * @param tokenIn Token de entrada
      * @param tokenOut Token de saída
      * @param amountIn Quantidade a ser swapada
@@ -813,9 +882,10 @@ contract DeltaNeutralVaultV1 is ERC20, ERC4626, Ownable, Pausable, ReentrancyGua
         // Aprovar tokens para o router
         IERC20(tokenIn).safeApprove(address(swapRouter), netAmountIn);
 
-        // Calcular amount mínimo (com slippage)
-        // Nota: em produção, use oracle para calcular preço esperado
-        uint256 amountOutMinimum = 0; // Simplificado - em produção, calcular baseado no preço
+        // Calcular amount mínimo usando oracle (PROTEÇÃO DE SLIPPAGE)
+        (uint256 oraclePrice,) = _getOraclePrice();
+        uint256 expectedOut = (netAmountIn * oraclePrice) / 1e18;
+        uint256 amountOutMinimum = (expectedOut * (10000 - maxSlippageBps)) / 10000;
 
         // Executar swap
         ISwapRouter.ExactInputSingleParams memory params = ISwapRouter.ExactInputSingleParams({
@@ -848,15 +918,21 @@ contract DeltaNeutralVaultV1 is ERC20, ERC4626, Ownable, Pausable, ReentrancyGua
         uint256 totalUsdc,
         bool usdcIsToken0
     ) internal view returns (uint256 amount0, uint256 amount1) {
-        // Simplificação: distribuir 50/50
-        // Em produção, calcular baseado no preço atual e range
-        if (usdcIsToken0) {
-            amount0 = totalUsdc / 2;
-            amount1 = totalUsdc / 2;
-        } else {
-            amount0 = totalUsdc / 2;
-            amount1 = totalUsdc / 2;
-        }
+        // Obter preço atual da pool
+        (uint160 sqrtPriceX96,,,,,,) = uniswapPool.slot0();
+
+        // Obter sqrt prices para os ticks
+        uint160 sqrtPriceAX96 = TickMath.getSqrtRatioAtTick(tickLower);
+        uint160 sqrtPriceBX96 = TickMath.getSqrtRatioAtTick(tickUpper);
+
+        // Usar LiquidityMath para calcular distribuição ótima
+        (amount0, amount1) = LiquidityMath.calculateOptimalAmounts(
+            totalUsdc,
+            sqrtPriceX96,
+            sqrtPriceAX96,
+            sqrtPriceBX96,
+            usdcIsToken0
+        );
     }
 
     /**
