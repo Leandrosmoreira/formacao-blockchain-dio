@@ -1,0 +1,175 @@
+🚀 Iniciando Backtest de Estratégia Short na Hyperliquid
+============================================================
+
+⚙️  Configurações:
+   Tokens: WBTC, UNI, LINK, CRV, ETH, GMX
+   Capital Inicial: $10,000.00
+   Período: Últimos 30 dias
+   Alocação por Token: 15%
+   Estratégia: SHORT (lucra com queda de preço)
+
+============================================================
+Backtesting SHORT em WBTC
+============================================================
+Buscando dados de preço para WBTC...
+Buscando funding rate para WBTC...
+
+📊 Resultados para WBTC:
+   Período: 30 dias (720 candles de 1h)
+   Preço Entrada: $95,234.50
+   Preço Saída: $89,123.00
+   Variação Preço: -6.42%
+
+💰 P&L:
+   Tamanho Posição: $1,500.00
+   P&L Preço: +$96.30
+   P&L Funding: +$12.45
+   P&L Total: +$108.75
+   ROI: +7.25%
+
+⚡ Funding Rate:
+   Pagamentos: 90
+   Rate Médio: 0.000092
+
+============================================================
+Backtesting SHORT em UNI
+============================================================
+Buscando dados de preço para UNI...
+Buscando funding rate para UNI...
+
+📊 Resultados para UNI:
+   Período: 30 dias (720 candles de 1h)
+   Preço Entrada: $8.45
+   Preço Saída: $8.75
+   Variação Preço: +3.55%
+
+💰 P&L:
+   Tamanho Posição: $1,500.00
+   P&L Preço: -$53.25
+   P&L Funding: +$8.13
+   P&L Total: -$45.12
+   ROI: -3.01%
+
+⚡ Funding Rate:
+   Pagamentos: 90
+   Rate Médio: 0.000060
+
+============================================================
+Backtesting SHORT em LINK
+============================================================
+Buscando dados de preço para LINK...
+Buscando funding rate para LINK...
+
+📊 Resultados para LINK:
+   Período: 30 dias (720 candles de 1h)
+   Preço Entrada: $14.23
+   Preço Saída: $13.45
+   Variação Preço: -5.48%
+
+💰 P&L:
+   Tamanho Posição: $1,500.00
+   P&L Preço: +$82.20
+   P&L Funding: +$10.78
+   P&L Total: +$92.98
+   ROI: +6.20%
+
+⚡ Funding Rate:
+   Pagamentos: 90
+   Rate Médio: 0.000080
+
+============================================================
+Backtesting SHORT em CRV
+============================================================
+Buscando dados de preço para CRV...
+Buscando funding rate para CRV...
+
+📊 Resultados para CRV:
+   Período: 30 dias (720 candles de 1h)
+   Preço Entrada: $0.87
+   Preço Saída: $0.92
+   Variação Preço: +5.75%
+
+💰 P&L:
+   Tamanho Posição: $1,500.00
+   P&L Preço: -$86.25
+   P&L Funding: +$5.67
+   P&L Total: -$80.58
+   ROI: -5.37%
+
+⚡ Funding Rate:
+   Pagamentos: 90
+   Rate Médio: 0.000042
+
+============================================================
+Backtesting SHORT em ETH
+============================================================
+Buscando dados de preço para ETH...
+Buscando funding rate para ETH...
+
+📊 Resultados para ETH:
+   Período: 30 dias (720 candles de 1h)
+   Preço Entrada: $3,245.67
+   Preço Saída: $3,012.34
+   Variação Preço: -7.19%
+
+💰 P&L:
+   Tamanho Posição: $1,500.00
+   P&L Preço: +$107.95
+   P&L Funding: +$37.28
+   P&L Total: +$145.23
+   ROI: +9.68%
+
+⚡ Funding Rate:
+   Pagamentos: 90
+   Rate Médio: 0.000276
+
+============================================================
+Backtesting SHORT em GMX
+============================================================
+Buscando dados de preço para GMX...
+Buscando funding rate para GMX...
+
+📊 Resultados para GMX:
+   Período: 30 dias (720 candles de 1h)
+   Preço Entrada: $42.34
+   Preço Saída: $40.12
+   Variação Preço: -5.24%
+
+💰 P&L:
+   Tamanho Posição: $1,500.00
+   P&L Preço: +$78.60
+   P&L Funding: +$14.72
+   P&L Total: +$93.32
+   ROI: +6.22%
+
+⚡ Funding Rate:
+   Pagamentos: 90
+   Rate Médio: 0.000109
+
+============================================================
+📈 RESUMO CONSOLIDADO - ESTRATÉGIA SHORT
+============================================================
+
+💼 Capital Inicial: $10,000.00
+   Total Investido: $9,000.00
+   Total P&L: +$314.58
+   ROI Médio: +3.50%
+   Capital Final: $10,314.58
+
+🏆 Melhor Performer:
+   ETH: +$145.23 (+9.68%)
+
+📉 Pior Performer:
+   CRV: -$80.58 (-5.37%)
+
+⚡ Estatísticas de Funding:
+   Total Funding P&L: +$89.03
+   Avg Funding Rate: 0.000110
+
+📊 Performance:
+   Trades Lucrativos: 4/6
+   Win Rate: 66.7%
+
+💾 Resultados salvos em: backtest_results_20250116_143025.csv
+
+✅ Backtest concluído!
