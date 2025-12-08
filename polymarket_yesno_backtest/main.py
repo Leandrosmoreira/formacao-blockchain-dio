@@ -12,6 +12,9 @@ Uso:
     python main.py --phase 4        # Executa Fase 4 (estatísticas de spread)
     python main.py --phase 5        # Executa Fase 5 (comparação de mercados)
     python main.py --phase 6        # Executa Fase 6 (análise temporal)
+    python main.py --phase 7        # Executa Fase 7 (modelo de custos)
+    python main.py --phase 8        # Executa Fase 8 (validação de edge)
+    python main.py --phase 9        # Executa Fase 9 (framework de risco)
     python main.py --phase all      # Executa todas as fases
 """
 
@@ -107,6 +110,61 @@ def run_phase6(timeframe: str = DEFAULT_TIMEFRAME) -> dict:
     }
 
 
+def run_phase7(timeframe: str = DEFAULT_TIMEFRAME, trade_size: float = 100.0) -> dict:
+    """Executa Fase 7: Modelo de Custos."""
+    from pipeline.phase7_cost_model import run_phase7_pipeline
+
+    analyses, summaries = run_phase7_pipeline(
+        timeframe=timeframe,
+        trade_size_usd=trade_size,
+    )
+    return {
+        "analyses": analyses,
+        "summaries": summaries,
+    }
+
+
+def run_phase8(timeframe: str = DEFAULT_TIMEFRAME, scenario: str = "median") -> dict:
+    """Executa Fase 8: Validação de Edge."""
+    from pipeline.phase8_edge_validation import run_phase8_pipeline
+
+    result = run_phase8_pipeline(
+        timeframe=timeframe,
+        scenario_name=scenario,
+    )
+    return {
+        "existence": result.existence,
+        "capturability": result.capturability,
+        "scalability": result.scalability,
+        "overall_viable": result.overall_viable,
+        "recommendation": result.recommendation,
+    }
+
+
+def run_phase9(
+    timeframe: str = DEFAULT_TIMEFRAME,
+    scenario: str = "median",
+    capital: float = 10000.0,
+) -> dict:
+    """Executa Fase 9: Framework de Risco."""
+    from pipeline.phase9_risk_framework import run_phase9_pipeline
+
+    framework = run_phase9_pipeline(
+        timeframe=timeframe,
+        scenario_name=scenario,
+        total_capital=capital,
+    )
+    return {
+        "buffer": framework.buffer,
+        "capital": framework.capital,
+        "markets": framework.markets,
+        "time": framework.time,
+        "limits": framework.limits,
+        "rules": framework.operational_rules,
+        "summary": framework.executive_summary,
+    }
+
+
 def run_all_phases(timeframes: Optional[list] = None) -> dict:
     """Executa todas as fases do pipeline."""
     results = {}
@@ -155,6 +213,27 @@ def run_all_phases(timeframes: Optional[list] = None) -> dict:
     print("=" * 60)
     phase6_result = run_phase6(timeframes[0])
     results["phase6"] = phase6_result
+
+    # Fase 7
+    print("\n" + "=" * 60)
+    print("FASE 7: MODELO DE CUSTOS")
+    print("=" * 60)
+    phase7_result = run_phase7(timeframes[0])
+    results["phase7"] = phase7_result
+
+    # Fase 8
+    print("\n" + "=" * 60)
+    print("FASE 8: VALIDAÇÃO DE EDGE")
+    print("=" * 60)
+    phase8_result = run_phase8(timeframes[0])
+    results["phase8"] = phase8_result
+
+    # Fase 9
+    print("\n" + "=" * 60)
+    print("FASE 9: FRAMEWORK DE RISCO")
+    print("=" * 60)
+    phase9_result = run_phase9(timeframes[0])
+    results["phase9"] = phase9_result
 
     return results
 
@@ -231,6 +310,28 @@ def print_summary(results: dict) -> None:
             else:
                 print("  Dias úteis têm MAIS arbitragem que fim de semana")
 
+    if "phase7" in results:
+        summaries = results["phase7"].get("summaries", {})
+        print(f"\nFase 7 - Modelo de Custos:")
+        for scenario_name, summary in summaries.items():
+            print(f"  Cenário {scenario_name}:")
+            print(f"    Viabilidade: {summary.overall_viability_rate:.1f}%")
+            print(f"    Lucro médio/trade: {summary.avg_net_profit_per_trade_pct:.4f}%")
+
+    if "phase8" in results:
+        print(f"\nFase 8 - Validação de Edge:")
+        print(f"  Edge existe: {results['phase8'].get('overall_viable', False)}")
+        print(f"  Recomendação: {results['phase8'].get('recommendation', 'N/A')[:80]}...")
+
+    if "phase9" in results:
+        print(f"\nFase 9 - Framework de Risco:")
+        buffer = results["phase9"].get("buffer")
+        capital = results["phase9"].get("capital")
+        if buffer:
+            print(f"  Buffer recomendado: {buffer.recommended_buffer*100:.2f}%")
+        if capital:
+            print(f"  Capital por trade: ${capital.recommended_trade_size_usd:.2f}")
+
 
 def main():
     """Função principal."""
@@ -245,6 +346,9 @@ Fases disponíveis:
   4    Estatísticas descritivas de spread (frequência, magnitude, duração)
   5    Comparação entre mercados (ranking, categorias, duração)
   6    Análise temporal (hora do dia, dia da semana, proximidade resolução)
+  7    Modelo de custos (fees, gas, slippage, falhas de execução)
+  8    Validação de edge (existência, capturabilidade, escalabilidade)
+  9    Framework de risco (regras operacionais, limites, recomendações)
   all  Executa todas as fases em sequência
         """
     )
@@ -252,9 +356,9 @@ Fases disponíveis:
     parser.add_argument(
         "--phase",
         type=str,
-        choices=["1", "2", "3", "4", "5", "6", "all"],
+        choices=["1", "2", "3", "4", "5", "6", "7", "8", "9", "all"],
         default="all",
-        help="Fase do pipeline a executar (1-6 ou all)",
+        help="Fase do pipeline a executar (1-9 ou all)",
     )
 
     parser.add_argument(
@@ -305,6 +409,12 @@ Fases disponíveis:
             results = {"phase5": run_phase5(timeframes[0])}
         elif args.phase == "6":
             results = {"phase6": run_phase6(timeframes[0])}
+        elif args.phase == "7":
+            results = {"phase7": run_phase7(timeframes[0])}
+        elif args.phase == "8":
+            results = {"phase8": run_phase8(timeframes[0])}
+        elif args.phase == "9":
+            results = {"phase9": run_phase9(timeframes[0])}
         else:
             results = run_all_phases(timeframes)
 
