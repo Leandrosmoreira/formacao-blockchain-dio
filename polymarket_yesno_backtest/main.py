@@ -10,6 +10,8 @@ Uso:
     python main.py --phase 2        # Executa Fase 2 (coleta de preços)
     python main.py --phase 3        # Executa Fase 3 (séries de arbitragem)
     python main.py --phase 4        # Executa Fase 4 (estatísticas de spread)
+    python main.py --phase 5        # Executa Fase 5 (comparação de mercados)
+    python main.py --phase 6        # Executa Fase 6 (análise temporal)
     python main.py --phase all      # Executa todas as fases
 """
 
@@ -80,6 +82,31 @@ def run_phase4(timeframe: str = DEFAULT_TIMEFRAME) -> dict:
     }
 
 
+def run_phase5(timeframe: str = DEFAULT_TIMEFRAME) -> dict:
+    """Executa Fase 5: Comparação entre Mercados."""
+    from pipeline.phase5_market_comparison import run_phase5_pipeline
+
+    rankings, category_stats, duration_stats = run_phase5_pipeline(timeframe=timeframe)
+    return {
+        "rankings": rankings,
+        "category_stats": category_stats,
+        "duration_stats": duration_stats,
+        "count": len(rankings),
+    }
+
+
+def run_phase6(timeframe: str = DEFAULT_TIMEFRAME) -> dict:
+    """Executa Fase 6: Análise Temporal (Sazonalidade)."""
+    from pipeline.phase6_temporal_analysis import run_phase6_pipeline
+
+    hourly_agg, daily_agg, insights = run_phase6_pipeline(timeframe=timeframe)
+    return {
+        "hourly": hourly_agg,
+        "daily": daily_agg,
+        "insights": insights,
+    }
+
+
 def run_all_phases(timeframes: Optional[list] = None) -> dict:
     """Executa todas as fases do pipeline."""
     results = {}
@@ -114,6 +141,20 @@ def run_all_phases(timeframes: Optional[list] = None) -> dict:
     print("=" * 60)
     phase4_result = run_phase4(timeframes[0])
     results["phase4"] = phase4_result
+
+    # Fase 5
+    print("\n" + "=" * 60)
+    print("FASE 5: COMPARAÇÃO ENTRE MERCADOS")
+    print("=" * 60)
+    phase5_result = run_phase5(timeframes[0])
+    results["phase5"] = phase5_result
+
+    # Fase 6
+    print("\n" + "=" * 60)
+    print("FASE 6: ANÁLISE TEMPORAL (SAZONALIDADE)")
+    print("=" * 60)
+    phase6_result = run_phase6(timeframes[0])
+    results["phase6"] = phase6_result
 
     return results
 
@@ -161,6 +202,35 @@ def print_summary(results: dict) -> None:
             print(f"  Arbitragem média (>0): {avg_positive:.2f}%")
             print(f"  Arbitragem máxima (>0): {max_positive:.2f}%")
 
+    if "phase5" in results:
+        count = results["phase5"].get("count", 0)
+        category_stats = results["phase5"].get("category_stats", {})
+        print(f"\nFase 5 - Comparação entre Mercados:")
+        print(f"  Mercados rankeados: {count}")
+        print(f"  Categorias identificadas: {len(category_stats)}")
+
+        if category_stats:
+            best_cat = max(category_stats.items(),
+                          key=lambda x: x[1].avg_composite_score)
+            print(f"  Melhor categoria: {best_cat[0]} (score={best_cat[1].avg_composite_score:.4f})")
+
+    if "phase6" in results:
+        insights = results["phase6"].get("insights", {})
+        print(f"\nFase 6 - Análise Temporal:")
+
+        if "best_period" in insights:
+            print(f"  Melhor período: {insights['best_period']} ({insights['best_period_pct']:.2f}%)")
+
+        if "best_day" in insights:
+            d = insights["best_day"]
+            print(f"  Melhor dia: {d['day_name']} ({d['positive_pct']:.2f}%)")
+
+        if "weekend_has_more_arb" in insights:
+            if insights["weekend_has_more_arb"]:
+                print("  Fim de semana tem MAIS arbitragem que dias úteis")
+            else:
+                print("  Dias úteis têm MAIS arbitragem que fim de semana")
+
 
 def main():
     """Função principal."""
@@ -173,6 +243,8 @@ Fases disponíveis:
   2    Coleta de histórico de preços YES/NO
   3    Reconstrução de séries de arbitragem (spread = 1 - YES - NO)
   4    Estatísticas descritivas de spread (frequência, magnitude, duração)
+  5    Comparação entre mercados (ranking, categorias, duração)
+  6    Análise temporal (hora do dia, dia da semana, proximidade resolução)
   all  Executa todas as fases em sequência
         """
     )
@@ -180,9 +252,9 @@ Fases disponíveis:
     parser.add_argument(
         "--phase",
         type=str,
-        choices=["1", "2", "3", "4", "all"],
+        choices=["1", "2", "3", "4", "5", "6", "all"],
         default="all",
-        help="Fase do pipeline a executar (1, 2, 3, 4, ou all)",
+        help="Fase do pipeline a executar (1-6 ou all)",
     )
 
     parser.add_argument(
@@ -229,6 +301,10 @@ Fases disponíveis:
             results = {"phase3": run_phase3(timeframes)}
         elif args.phase == "4":
             results = {"phase4": run_phase4(timeframes[0])}
+        elif args.phase == "5":
+            results = {"phase5": run_phase5(timeframes[0])}
+        elif args.phase == "6":
+            results = {"phase6": run_phase6(timeframes[0])}
         else:
             results = run_all_phases(timeframes)
 
