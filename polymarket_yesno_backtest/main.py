@@ -8,6 +8,8 @@ binários da Polymarket.
 Uso:
     python main.py --phase 1        # Executa Fase 1 (seleção de mercados)
     python main.py --phase 2        # Executa Fase 2 (coleta de preços)
+    python main.py --phase 3        # Executa Fase 3 (séries de arbitragem)
+    python main.py --phase 4        # Executa Fase 4 (estatísticas de spread)
     python main.py --phase all      # Executa todas as fases
 """
 
@@ -55,9 +57,35 @@ def run_phase2(timeframes: Optional[list] = None) -> dict:
     return {"results": results}
 
 
+def run_phase3(timeframes: Optional[list] = None) -> dict:
+    """Executa Fase 3: Reconstrução de Séries de Arbitragem."""
+    from pipeline.phase3_arbitrage_series import run_phase3_pipeline
+
+    if timeframes is None:
+        timeframes = [DEFAULT_TIMEFRAME]
+
+    results = run_phase3_pipeline(timeframes=timeframes)
+    return {"results": results}
+
+
+def run_phase4(timeframe: str = DEFAULT_TIMEFRAME) -> dict:
+    """Executa Fase 4: Estatísticas Descritivas de Spread."""
+    from pipeline.phase4_stats_spread import run_phase4_pipeline
+
+    stats_list, df_summary = run_phase4_pipeline(timeframe=timeframe)
+    return {
+        "stats_list": stats_list,
+        "summary": df_summary,
+        "count": len(stats_list),
+    }
+
+
 def run_all_phases(timeframes: Optional[list] = None) -> dict:
     """Executa todas as fases do pipeline."""
     results = {}
+
+    if timeframes is None:
+        timeframes = [DEFAULT_TIMEFRAME]
 
     # Fase 1
     print("\n" + "=" * 60)
@@ -72,6 +100,20 @@ def run_all_phases(timeframes: Optional[list] = None) -> dict:
     print("=" * 60)
     phase2_result = run_phase2(timeframes)
     results["phase2"] = phase2_result
+
+    # Fase 3
+    print("\n" + "=" * 60)
+    print("FASE 3: RECONSTRUÇÃO DE SÉRIES DE ARBITRAGEM")
+    print("=" * 60)
+    phase3_result = run_phase3(timeframes)
+    results["phase3"] = phase3_result
+
+    # Fase 4
+    print("\n" + "=" * 60)
+    print("FASE 4: ESTATÍSTICAS DESCRITIVAS DE SPREAD")
+    print("=" * 60)
+    phase4_result = run_phase4(timeframes[0])
+    results["phase4"] = phase4_result
 
     return results
 
@@ -100,20 +142,47 @@ def print_summary(results: dict) -> None:
         for timeframe, market_results in phase2_results.items():
             print(f"  Timeframe {timeframe}: {len(market_results)} mercados")
 
+    if "phase3" in results:
+        phase3_results = results["phase3"].get("results", {})
+        print(f"\nFase 3 - Séries de Arbitragem:")
+        for timeframe, market_results in phase3_results.items():
+            print(f"  Timeframe {timeframe}: {len(market_results)} mercados processados")
+
+    if "phase4" in results:
+        count = results["phase4"].get("count", 0)
+        print(f"\nFase 4 - Estatísticas de Spread:")
+        print(f"  Mercados analisados: {count}")
+
+        stats_list = results["phase4"].get("stats_list", [])
+        if stats_list:
+            import numpy as np
+            avg_positive = np.mean([s.frequency.positive_pct for s in stats_list])
+            max_positive = max(s.frequency.positive_pct for s in stats_list)
+            print(f"  Arbitragem média (>0): {avg_positive:.2f}%")
+            print(f"  Arbitragem máxima (>0): {max_positive:.2f}%")
+
 
 def main():
     """Função principal."""
     parser = argparse.ArgumentParser(
         description="Polymarket YES/NO Backtest Pipeline",
         formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Fases disponíveis:
+  1    Seleção de mercados (busca API, filtra, agrupa A/B/C)
+  2    Coleta de histórico de preços YES/NO
+  3    Reconstrução de séries de arbitragem (spread = 1 - YES - NO)
+  4    Estatísticas descritivas de spread (frequência, magnitude, duração)
+  all  Executa todas as fases em sequência
+        """
     )
 
     parser.add_argument(
         "--phase",
         type=str,
-        choices=["1", "2", "all"],
+        choices=["1", "2", "3", "4", "all"],
         default="all",
-        help="Fase do pipeline a executar (1, 2, ou all)",
+        help="Fase do pipeline a executar (1, 2, 3, 4, ou all)",
     )
 
     parser.add_argument(
@@ -121,13 +190,13 @@ def main():
         type=str,
         choices=TIMEFRAMES,
         default=DEFAULT_TIMEFRAME,
-        help=f"Timeframe para coleta de preços (default: {DEFAULT_TIMEFRAME})",
+        help=f"Timeframe para análise (default: {DEFAULT_TIMEFRAME})",
     )
 
     parser.add_argument(
         "--all-timeframes",
         action="store_true",
-        help="Coleta todos os timeframes disponíveis",
+        help="Processa todos os timeframes disponíveis",
     )
 
     parser.add_argument(
@@ -156,6 +225,10 @@ def main():
             results = {"phase1": run_phase1()}
         elif args.phase == "2":
             results = {"phase2": run_phase2(timeframes)}
+        elif args.phase == "3":
+            results = {"phase3": run_phase3(timeframes)}
+        elif args.phase == "4":
+            results = {"phase4": run_phase4(timeframes[0])}
         else:
             results = run_all_phases(timeframes)
 
