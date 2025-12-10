@@ -527,7 +527,9 @@ def save_hourly_analysis_to_csv(
 
     records = [stats for stats in hourly_agg.values()]
     df = pd.DataFrame(records)
-    df = df.sort_values("hour")
+
+    if len(df) > 0 and "hour" in df.columns:
+        df = df.sort_values("hour")
 
     filepath = output_dir / filename
     df.to_csv(filepath, index=False)
@@ -546,7 +548,9 @@ def save_daily_analysis_to_csv(
 
     records = [stats for stats in daily_agg.values()]
     df = pd.DataFrame(records)
-    df = df.sort_values("day")
+
+    if len(df) > 0 and "day" in df.columns:
+        df = df.sort_values("day")
 
     filepath = output_dir / filename
     df.to_csv(filepath, index=False)
