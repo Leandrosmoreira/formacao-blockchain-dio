@@ -57,60 +57,120 @@ class DataCollector:
         logger.info(f"Fetching SOL 15-min markets from {start_date} to {end_date}")
 
         all_markets = []
-        cursor = None
+        offset = 0
         page = 0
+        max_pages = 100  # Safety limit
 
-        while True:
-            self._rate_limit_wait()
+        # Try different search strategies
+        search_params_list = [
+            # Strategy 1: Search by slug containing sol-updown
+            {"slug_contains": "sol-updown", "closed": "true", "limit": 100},
+            # Strategy 2: Search by tag
+            {"tag": "crypto", "closed": "true", "limit": 100},
+            # Strategy 3: No filter, get all closed markets
+            {"closed": "true", "limit": 100},
+        ]
 
-            params = {
-                "tag": "solana",
-                "closed": "true",
-                "limit": 100,
-            }
-            if cursor:
-                params["cursor"] = cursor
-
-            try:
-                response = self.client.get(
-                    f"{self.gamma_api}/markets",
-                    params=params
-                )
-                response.raise_for_status()
-                data = response.json()
-            except Exception as e:
-                logger.error(f"Error fetching markets: {e}")
+        for search_params in search_params_list:
+            if all_markets:  # Found markets with previous strategy
                 break
 
-            markets = data.get("data", data) if isinstance(data, dict) else data
+            offset = 0
+            page = 0
+            logger.info(f"Trying search params: {search_params}")
 
-            if not markets:
-                break
+            while page < max_pages:
+                self._rate_limit_wait()
 
-            # Filter for SOL Up/Down 15-min markets
-            for market in markets:
-                question = market.get("question", "").lower()
-                if "solana" in question and ("up or down" in question or "up/down" in question):
-                    # Check if it's a 15-min market
-                    if "15" in question or ":00-" in question or ":15-" in question or ":30-" in question or ":45-" in question:
+                params = search_params.copy()
+                params["offset"] = offset
+
+                try:
+                    response = self.client.get(
+                        f"{self.gamma_api}/markets",
+                        params=params
+                    )
+                    response.raise_for_status()
+                    data = response.json()
+                except Exception as e:
+                    logger.error(f"Error fetching markets: {e}")
+                    break
+
+                markets = data if isinstance(data, list) else data.get("data", data)
+
+                if not markets or not isinstance(markets, list):
+                    logger.debug(f"No more markets at offset {offset}")
+                    break
+
+                # Debug: show first market structure
+                if page == 0 and markets:
+                    sample = markets[0]
+                    logger.debug(f"Sample market keys: {sample.keys()}")
+                    logger.debug(f"Sample question: {sample.get('question', 'N/A')[:100]}")
+                    logger.debug(f"Sample slug: {sample.get('slug', 'N/A')}")
+
+                # Filter for SOL Up/Down 15-min markets
+                for market in markets:
+                    question = (market.get("question") or "").lower()
+                    slug = (market.get("slug") or "").lower()
+                    description = (market.get("description") or "").lower()
+
+                    # Check if it's a SOL market
+                    is_sol = any([
+                        "solana" in question,
+                        "sol " in question,
+                        "sol-" in slug,
+                        "solana" in slug,
+                    ])
+
+                    # Check if it's up/down market
+                    is_updown = any([
+                        "up or down" in question,
+                        "up/down" in question,
+                        "updown" in slug,
+                        "up-down" in slug,
+                    ])
+
+                    # Check if it's 15-min
+                    is_15min = any([
+                        "15" in question,
+                        "15m" in slug,
+                        "15-m" in slug,
+                        # Time patterns like 4:00-4:15, 4:15-4:30, etc
+                        ":00-" in question and ":15" in question,
+                        ":15-" in question and ":30" in question,
+                        ":30-" in question and ":45" in question,
+                        ":45-" in question and ":00" in question,
+                    ])
+
+                    if is_sol and is_updown:
                         market_data = self._parse_market(market)
                         if market_data:
-                            all_markets.append(market_data)
+                            # Check if not duplicate
+                            if not any(m['market_id'] == market_data['market_id'] for m in all_markets):
+                                all_markets.append(market_data)
+                                if len(all_markets) <= 3:
+                                    logger.info(f"Found market: {market_data['question'][:80]}...")
 
-            page += 1
-            logger.info(f"Page {page}: Found {len(all_markets)} SOL 15-min markets so far")
+                page += 1
+                offset += 100
 
-            # Check for pagination
-            cursor = data.get("next_cursor") if isinstance(data, dict) else None
-            if not cursor or len(markets) < 100:
-                break
+                if page % 10 == 0:
+                    logger.info(f"Page {page}: Found {len(all_markets)} SOL markets so far")
+
+                # Stop if we got less than limit (no more pages)
+                if len(markets) < 100:
+                    break
 
         df = pd.DataFrame(all_markets)
 
         if not df.empty:
             # Filter by date range
-            df['start_time'] = pd.to_datetime(df['start_time'])
-            df['end_time'] = pd.to_datetime(df['end_time'])
+            df['start_time'] = pd.to_datetime(df['start_time'], errors='coerce')
+            df['end_time'] = pd.to_datetime(df['end_time'], errors='coerce')
+
+            # Remove rows with invalid dates
+            df = df.dropna(subset=['start_time'])
 
             start = pd.to_datetime(start_date)
             end = pd.to_datetime(end_date)
@@ -119,12 +179,14 @@ class DataCollector:
             # Sort by start time
             df = df.sort_values('start_time').reset_index(drop=True)
 
-            logger.info(f"Total markets found: {len(df)}")
+            logger.info(f"Total markets found after date filter: {len(df)}")
 
             if save_path:
                 Path(save_path).parent.mkdir(parents=True, exist_ok=True)
                 df.to_csv(save_path, index=False)
                 logger.info(f"Saved to {save_path}")
+        else:
+            logger.warning("No markets found. The API might have changed or no SOL 15-min markets exist.")
 
         return df
 
